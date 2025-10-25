@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  blue_app:
+    image: ${BLUE_IMAGE}
+    platform: linux/amd64
+    container_name: blue_app
+    environment:
+      - RELEASE_ID=${RELEASE_ID_BLUE}
+      - APP_POOL=blue
+      - PORT=${PORT}
+    ports:
+      - "8081:${PORT}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/healthz"]
+      interval: 3s
+      timeout: 1s
+      retries: 3
+
+  green_app:
+    image: ${GREEN_IMAGE}
+    platform: linux/amd64
+    container_name: green_app
+    environment:
+      - RELEASE_ID=${RELEASE_ID_GREEN}
+      - APP_POOL=green
+      - PORT=${PORT}
+    ports:
+      - "8082:${PORT}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT}/healthz"]
+      interval: 3s
+      timeout: 1s
+      retries: 3
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    depends_on:
+      - blue_app
+      - green_app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+    environment:
+      - ACTIVE_POOL=${ACTIVE_POOL}
+      - BLUE_APP_HOST=blue_app
+      - GREEN_APP_HOST=green_app
+      - PORT=${PORT}
+    command: >
+      /bin/sh -c "
+        if [ \"$$ACTIVE_POOL\" = \"blue\" ]; then
+          export PRIMARY_SERVER=\"$$BLUE_APP_HOST:$$PORT\";
+          export BACKUP_SERVER=\"$$GREEN_APP_HOST:$$PORT\";
+        else
+          export PRIMARY_SERVER=\"$$GREEN_APP_HOST:$$PORT\";
+          export BACKUP_SERVER=\"$$BLUE_APP_HOST:$$PORT\";
+        fi &&
+        envsubst '$$PRIMARY_SERVER $$BACKUP_SERVER' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf &&
+        nginx -g 'daemon off;'
+      "
