@@ -19,7 +19,7 @@ A blue/green deployment setup using Docker Compose and Nginx for zero-downtime f
 1. **Clone the repo**
 
 ```bash
-   git clone https://github.com/AdaezeIkemefuna/blue-green-app
+   git clone https://github.com/AdaezeIkemefuna/blue-green-app.git
    cd blue-green-app
 ```
 
