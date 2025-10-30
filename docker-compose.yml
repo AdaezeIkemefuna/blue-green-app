@@ -47,6 +47,7 @@ services:
       - BLUE_APP_HOST=blue_app
       - GREEN_APP_HOST=green_app
       - PORT=${PORT}
+    restart: unless-stopped
     command: >
       /bin/sh -c "
         touch /var/log/nginx/access.log /var/log/nginx/error.log &&
@@ -74,6 +75,7 @@ services:
       - CHECK_WINDOW_SECONDS=${CHECK_WINDOW_SECONDS:-60}
       - ALERT_COOLDOWN_SEC=${ALERT_COOLDOWN_SEC:-300}
       - NGINX_LOG_PATH=/var/log/nginx/access.log
+      - USERNAME=Hamsa
     restart: unless-stopped
 
 volumes:

@@ -44,7 +44,13 @@ http {
     }
 
     location /error {
-      return 502;
+      proxy_pass http://main_backend/nonexistent;  
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_buffering off;
+      
+      proxy_pass_header X-App-Pool;
+      proxy_pass_header X-Release-Id;
     }
   }
 }
