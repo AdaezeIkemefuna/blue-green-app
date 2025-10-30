@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import os, re, time, requests
 from datetime import datetime, timedelta
 from collections import deque
@@ -13,7 +12,7 @@ error_timestamps = deque()
 last_alert_time = {"failover": datetime.min, "error_rate": datetime.min}
 current_pool = None
 
-LOG_PATTERN = re.compile(r'.*" (?P<status>\d{3}) \d+ "[^"]*" "[^"]*" pool=(?P<pool>[^\s]+)')
+LOG_PATTERN = re.compile(r'.*" (?P<status>\d{3}) \d+ "[^"]*" "[^"]*" pool=(?P<pool>\S+)')
 
 def send_slack(message, severity="warning"):
     if not SLACK_WEBHOOK_URL:

@@ -218,7 +218,7 @@ This project includes real-time Slack notifications for deployment events and er
    # Alert Thresholds
    ERROR_THRESHOLD=5
    CHECK_WINDOW_SECONDS=60
-   ALERT_COOLDOWN_SECONDS=300
+   ALERT_COOLDOWN_SEC=300
 
    # Other configs...
    ACTIVE_POOL=blue
@@ -261,7 +261,7 @@ ERROR_THRESHOLD=5
 CHECK_WINDOW_SECONDS=60
 
 # Minimum time between repeated alerts (seconds)
-ALERT_COOLDOWN_SECONDS=300
+ALERT_COOLDOWN_SEC=300
 ```
 
 ### Troubleshooting
@@ -279,7 +279,7 @@ ALERT_COOLDOWN_SECONDS=300
 
 **Too many alerts?**
 
-- Increase `ALERT_COOLDOWN_SECONDS` (default: 300)
+- Increase `ALERT_COOLDOWN_SEC` (default: 300)
 - Increase `ERROR_THRESHOLD` (default: 5)
 
 **Missing failover alerts?**
