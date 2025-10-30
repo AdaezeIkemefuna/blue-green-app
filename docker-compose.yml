@@ -43,6 +43,7 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+      - ./shared-logs/nginx:/var/log/nginx
     environment:
       - ACTIVE_POOL=${ACTIVE_POOL}
       - BLUE_APP_HOST=blue_app
@@ -50,6 +51,7 @@ services:
       - PORT=${PORT}
     command: >
       /bin/sh -c "
+        touch /var/log/nginx/access.log /var/log/nginx/error.log &&
         if [ \"$$ACTIVE_POOL\" = \"blue\" ]; then
           export PRIMARY_SERVER=\"$$BLUE_APP_HOST:$$PORT\";
           export BACKUP_SERVER=\"$$GREEN_APP_HOST:$$PORT\";
@@ -60,3 +62,21 @@ services:
         envsubst '$$PRIMARY_SERVER $$BACKUP_SERVER' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/nginx.conf &&
         nginx -g 'daemon off;'
       "
+
+  watcher:
+    build: ./watcher
+    container_name: log_watcher
+    depends_on:
+      - nginx
+    volumes:
+      - ./shared-logs/nginx:/var/log/nginx
+    environment:
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - ERROR_THRESHOLD=${ERROR_THRESHOLD:-5}
+      - CHECK_WINDOW_SECONDS=${CHECK_WINDOW_SECONDS:-60}
+      - ALERT_COOLDOWN_SECONDS=${ALERT_COOLDOWN_SECONDS:-300}
+      - NGINX_LOG_PATH=/var/log/nginx/access.log
+    restart: unless-stopped
+
+volumes:
+  nginx_logs:

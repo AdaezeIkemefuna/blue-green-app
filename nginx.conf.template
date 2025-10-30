@@ -1,10 +1,22 @@
 worker_processes 1;
-
 events {
   worker_connections 1024;
 }
 
 http {
+  log_format custom_format '$remote_addr - $remote_user [$time_local] '
+                           '"$request" $status $body_bytes_sent "$http_referer" '
+                           '"$http_user_agent" '
+                           'pool=$upstream_addr '
+                           'release=$upstream_http_x_release_id '
+                           'upstream_status=$upstream_status '
+                           'upstream_addr=$upstream_addr '
+                           'request_time=$request_time '
+                           'upstream_response_time=$upstream_response_time';
+
+  access_log /var/log/nginx/access.log custom_format;
+  error_log /var/log/nginx/error.log warn;
+
   upstream main_backend {
     server ${PRIMARY_SERVER} max_fails=1 fail_timeout=10s;
     server ${BACKUP_SERVER} backup;
@@ -12,7 +24,7 @@ http {
 
   server {
     listen 80;
-
+    
     proxy_connect_timeout 1s;
     proxy_send_timeout 1s;
     proxy_read_timeout 1s;
@@ -20,13 +32,19 @@ http {
     proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504;
     proxy_next_upstream_tries 2;
     proxy_next_upstream_timeout 3s;
-
+    
     location / {
       proxy_pass http://main_backend;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
-      
       proxy_buffering off;
+      
+      proxy_pass_header X-App-Pool;
+      proxy_pass_header X-Release-Id;
+    }
+
+    location /error {
+      return 502;
     }
   }
 }
