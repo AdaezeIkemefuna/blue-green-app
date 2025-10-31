@@ -1,0 +1,5 @@
+.env
+magic_test.sh
+monitor_failover.sh
+test.py
+test_failover.sh
